@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: market
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=market
+    password: admin
+    username: postgres
+  jpa:
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    change-log: classpath:/db/changelog/changelog.xml
