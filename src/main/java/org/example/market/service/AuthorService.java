@@ -18,9 +18,10 @@ import java.util.stream.Collectors;
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final BookService bookService;
 
     public AuthorDetailDto getAuthorById(Long id) throws NotFoundException {
-        Author author = authorRepository.findByIdWithBooks(id)
+        Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Автор не найден"));
 
         AuthorDetailDto authorDto = AuthorDetailDto.builder()
@@ -31,7 +32,7 @@ public class AuthorService {
                 .languageOfWorks(author.getLanguageOfWorks())
                 .build();
 
-        List<Book> booksList = new ArrayList<>();
+        List<Book> booksList = bookService.getBooksByAuthorId(id);
         List<BookDetailDto> bookDtos = booksList.stream()
                 .map(book -> BookDetailDto.builder()
                         .name(book.getName())
@@ -44,6 +45,9 @@ public class AuthorService {
                         .authorDetailDto(AuthorDetailDto.builder()
                                 .firstName(author.getFirstName())
                                 .lastName(author.getLastName())
+                                .dateOfBirth(author.getDateOfBirth())
+                                .languageOfWorks(author.getLanguageOfWorks())
+                                .citizenship(author.getCitizenship())
                                 .build())
                         .build())
                 .collect(Collectors.toList());

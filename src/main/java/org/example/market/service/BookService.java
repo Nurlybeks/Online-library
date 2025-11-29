@@ -111,4 +111,8 @@ public class BookService {
         Book book = getBookById(id);
         bookRepository.delete(book);
     }
+
+    public List<Book> getBooksByAuthorId(Long id) {
+        return bookRepository.findAllByAuthorId(id);
+    }
 }

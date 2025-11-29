@@ -38,6 +38,4 @@ public class Author {
     @Column(name = "LANGUAGE_OF_WORKS")
     private String languageOfWorks;
 
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Book> books = new HashSet<>();
 }

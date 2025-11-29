@@ -68,7 +68,7 @@ public class UserService {
 
 
     public AuthorDetailDto getAuthorById(Long id) throws NotFoundException{
-        Author author = authorRepository.findByIdWithBooks(id)
+        Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Автор не найден"));
 
         AuthorDetailDto authorDto = AuthorDetailDto.builder()

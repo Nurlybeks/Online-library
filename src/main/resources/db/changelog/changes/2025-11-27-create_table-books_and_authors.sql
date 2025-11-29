@@ -3,7 +3,7 @@
 --changeset numberless:create_1
 CREATE TABLE market.AUTHORS
 (
-    ID                BIGINT PRIMARY KEY,
+    ID                BIGSERIAL PRIMARY KEY,
     FIRST_NAME        VARCHAR(100) NOT NULL,
     LAST_NAME         VARCHAR(100) NOT NULL,
     DATE_OF_BIRTH     DATE         NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE market.AUTHORS
 
 CREATE TABLE market.books
 (
-    ID          BIGINT PRIMARY KEY,
+    ID          BIGSERIAL PRIMARY KEY,
     NAME        VARCHAR(100) NOT NULL,
     AUTHOR_ID   BIGINT,
     YEAR        INT          NOT NULL,
