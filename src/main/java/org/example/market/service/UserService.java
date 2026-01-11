@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -99,5 +98,12 @@ public class UserService {
         authorDto.setBooks(bookDtos);
 
         return authorDto;
+    }
+
+    public void changePasswordByUsername(ChangePasswordUserDto dto)  {
+        User user = userRepository.findByUsername(dto.getUsername())
+                .orElseThrow(() -> new NotFoundException("Пользователь с таким логином не найден"));
+        user.setPasswordHash(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
     }
 }

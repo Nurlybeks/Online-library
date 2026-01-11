@@ -2,6 +2,7 @@ package org.example.market.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -24,5 +25,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .badRequest()
                 .body("Неверное тело запроса");
+    }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<?> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        log.error(ex.getMessage());
+        return ResponseEntity
+                .badRequest()
+                .body("Количество символов в валюте должно быть 3");
     }
 }

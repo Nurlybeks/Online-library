@@ -1,8 +1,8 @@
 package org.example.market.dto;
 
 import lombok.*;
+
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
@@ -10,12 +10,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 
-public class AuthorDetailDto {
+public class AuthorUpdateDto {
 
     private String firstName;
     private String lastName;
-    private LocalDate dateOfBirth;
+    private LocalDate birthDate;
     private String citizenship;
     private String languageOfWorks;
-    private List<BookDetailDto> books;
 }

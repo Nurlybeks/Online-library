@@ -1,10 +1,8 @@
 package org.example.market.entity;
 
-import jakarta.annotation.security.DenyAll;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "BOOKS")

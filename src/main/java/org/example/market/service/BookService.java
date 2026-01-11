@@ -1,16 +1,23 @@
 package org.example.market.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.example.market.dto.*;
 import org.example.market.entity.Author;
 import org.example.market.entity.Book;
-import org.example.market.mapper.BookMapper;
 import org.example.market.repository.AuthorRepository;
 import org.example.market.repository.BookRepository;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,15 +27,13 @@ public class BookService {
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
 
-    public List<BookDto> getListBooks() {
-        return bookRepository.findAll()
-                .stream()
+    public Page<BookDto> getListBooks(Pageable pageable) {
+        return bookRepository.findAll(pageable)
                 .map(book -> {
-
                     String authorFullName = book.getAuthor().getFirstName()
                             + " " + book.getAuthor().getLastName();
 
-                    BookDto bookDto = BookDto.builder()
+                    return BookDto.builder()
                             .name(book.getName())
                             .authorFullName(authorFullName)
                             .year(book.getYear())
@@ -38,12 +43,17 @@ public class BookService {
                             .description(book.getDescription())
                             .quantity(book.getQuantity())
                             .build();
-                    return bookDto;
-                })
-                .collect(Collectors.toList());
+                });
     }
 
     public BookDetailDto addBook(BookCreateDto bookCreateDto) throws BadRequestException {
+        List<Book> isExist = bookRepository.findAllByName(bookCreateDto.getName());
+
+        if (!isExist.isEmpty()) {
+            throw new BadRequestException("Книга с названием " + bookCreateDto.getName() +
+                    " уже существует");
+        }
+
         Author author = getAuthorById(bookCreateDto.getAuthorId());
         Book book = new Book();
         book.setName(bookCreateDto.getName());
@@ -114,5 +124,50 @@ public class BookService {
 
     public List<Book> getBooksByAuthorId(Long id) {
         return bookRepository.findAllByAuthorId(id);
+    }
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public List<BookDto> dynamicSearch(BookFilterDto dto) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Book> cq = cb.createQuery(Book.class);
+        Root<Book> root = cq.from(Book.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            String name =  "%" + dto.getName().toLowerCase().trim() + "%";
+            predicates.add(cb.like(cb.lower(root.get("name")), name));
+        }
+
+        if(dto.getMinPrice() != null && dto.getMaxPrice() != null){
+            predicates.add(cb.between(root.get("price"), dto.getMinPrice(), dto.getMaxPrice()));
+        }else if(dto.getMinPrice() != null){
+            predicates.add(cb.greaterThanOrEqualTo(root.get("price"), dto.getMinPrice()));
+        }else if (dto.getMaxPrice() != null){
+            predicates.add(cb.lessThanOrEqualTo(root.get("price"), dto.getMaxPrice()));
+        }
+
+        if (dto.getLanguage() != null && !dto.getLanguage().isBlank()) {
+            String language = "%" + dto.getLanguage().toLowerCase().trim() + "%";
+            predicates.add(cb.like(cb.lower(root.get("language")), language));
+        }
+        Predicate[] array = predicates.toArray(new Predicate[0]);
+        cq.where(array);
+
+        List<Book> books = entityManager.createQuery(cq).getResultList();
+
+        return books.stream()
+                .map(book -> BookDto.builder()
+                        .name(book.getName())
+                        .authorFullName(book.getAuthor().getFirstName() + " " + book.getAuthor().getLastName())
+                        .price(book.getPrice())
+                        .language(book.getLanguage())
+                        .year(book.getYear())
+                        .quantity(book.getQuantity())
+                        .currency(book.getCurrency())
+                        .description(book.getDescription())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

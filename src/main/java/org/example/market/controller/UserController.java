@@ -1,23 +1,22 @@
 package org.example.market.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.example.market.dto.AuthorDetailDto;
 import org.example.market.dto.BookDto;
+import org.example.market.dto.BookFilterDto;
 import org.example.market.dto.UserResponceDto;
 import org.example.market.exception.NotFoundException;
 import org.example.market.service.AuthorService;
 import org.example.market.service.BookService;
 import org.example.market.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.awt.print.Book;
 import java.util.List;
 
 @RestController
@@ -42,14 +41,23 @@ public class UserController {
     }
 
     @GetMapping("/books")
-    public ResponseEntity<List<BookDto>> dto() {
-        try {
-            List<BookDto> books = bookService.getListBooks();
-            return ResponseEntity.ok(books);
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<Page<BookDto>>  getBooks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+            ){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<BookDto> dto = bookService.getListBooks(pageable);
+        return ResponseEntity.ok(dto);
     }
+//    @GetMapping("/books")
+//    public ResponseEntity<List<BookDto>> dto() {
+//        try {
+//            List<BookDto> books = bookService.getListBooks();
+//            return ResponseEntity.ok(books);
+//        } catch (Exception ex) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//        }
+//    }
 
     @GetMapping("/get/author/{id}")
     public ResponseEntity<AuthorDetailDto> getAuthor(@PathVariable Long id) {
@@ -62,5 +70,11 @@ public class UserController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+        @GetMapping("/search")
+    public ResponseEntity<List<BookDto>>  dynamicSearch(@RequestBody BookFilterDto dto){
+        List<BookDto> dtos = bookService.dynamicSearch(dto);
+        return ResponseEntity.ok(dtos);
     }
 }
